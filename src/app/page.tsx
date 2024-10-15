@@ -1,14 +1,13 @@
 'use client';
 
-import Image from 'next/image';
 import { useState, useRef } from 'react';
 
 export default function MiningVisit() {
   const [coordinates, setCoordinates] = useState('');
   const [utmCoordinates, setUtmCoordinates] = useState('');
-  const [images, setImages] = useState([]);
-  const [visitData, setVisitData] = useState(null);
-  const videoRef = useRef(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [visitData, setVisitData] = useState<{ visitDate: string; departureTime: string; vehicle: string; reporter: string; idCode: string; nationalId: string; visitDescription: string; images: string[]; } | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const getCoordinates = () => {
     if (navigator.geolocation) {
@@ -30,15 +29,15 @@ export default function MiningVisit() {
     }
   };
 
-  const convertToUTM = (lat, lon) => {
+  const convertToUTM = (lat: number, lon: number) => {
     const zone = Math.floor((lon + 180) / 6) + 1;
     const easting = 500000 + lon * 111320;
     const northing = lat >= 0 ? lat * 110574 : lat * 110574 + 10000000;
     return `زون ${zone}, مختصات شرقی ${easting.toFixed(2)}, مختصات شمالی ${northing.toFixed(2)}`;
   };
 
-  const convertToDMS = (lat, lon) => {
-    const toDMS = (deg) => {
+  const convertToDMS = (lat: number, lon: number) => {
+    const toDMS = (deg: number) => {
       const d = Math.floor(deg);
       const minFloat = (deg - d) * 60;
       const m = Math.floor(minFloat);
@@ -54,7 +53,7 @@ export default function MiningVisit() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       const video = videoRef.current;
       if (video) {
-        video.srcObject = stream;
+        (video as HTMLVideoElement).srcObject = stream;
         video.play();
       }
     } catch (error) {
@@ -69,24 +68,25 @@ export default function MiningVisit() {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const context = canvas.getContext('2d');
+    if (!context) return;
       context.drawImage(video, 0, 0);
       context.font = '20px Vazir';
       context.fillStyle = 'black';
       context.fillText(coordinates, 10, 30);
       const imageData = canvas.toDataURL('image/png');
-      setImages((prevImages) => [...prevImages, imageData]);
+      setImages((prevImages: string[]) => [...prevImages, imageData]);
     }
   };
 
   const handleSubmit = () => {
     const visitDetails = {
-      visitDate: document.getElementById('visit-date').value,
-      departureTime: document.getElementById('departure-time').value,
-      vehicle: document.getElementById('vehicle').value,
-      reporter: document.getElementById('reporter').value,
-      idCode: document.getElementById('id-code').value,
-      nationalId: document.getElementById('national-id').value,
-      visitDescription: document.getElementById('visit-description').value,
+      visitDate: (document.getElementById('visit-date') as HTMLInputElement)?.value || '',
+      departureTime: (document.getElementById('departure-time') as HTMLInputElement)?.value || '',
+      vehicle: (document.getElementById('vehicle') as HTMLInputElement)?.value || '',
+      reporter: (document.getElementById('reporter') as HTMLInputElement)?.value || '',
+      idCode: (document.getElementById('id-code') as HTMLInputElement)?.value || '',
+      nationalId: (document.getElementById('national-id') as HTMLInputElement)?.value || '',
+      visitDescription: (document.getElementById('visit-description') as HTMLTextAreaElement)?.value || '',
       images: images,
     };
     setVisitData(visitDetails);
